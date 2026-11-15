@@ -1,0 +1,76 @@
+name: CUT STUDIO macOS
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/cut-studio-macos.yml'
+permissions:
+  contents: read
+concurrency:
+  group: cut-studio-macos
+  cancel-in-progress: false
+jobs:
+  apple-silicon:
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_OPTIONS: --max-old-space-size=4096
+      CUT_STUDIO_DESKTOP: '1'
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.3.3'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          version: '0.11.5'
+          enable-cache: false
+      - name: Verify Mac and download matching source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          curl --fail --location --retry 3 --output source.zip https://github.com/OpaMaus/cut-studio/releases/download/v0.0.0/CUT-STUDIO-macOS-Buildkit-0.0.0-ci1.zip
+          echo '7b2e3f13e0a041b84509130869ca90e6a57bfbeec312941a23900e40f5a99735  source.zip' | shasum -a 256 --check
+          mkdir source
+          unzip -q source.zip -d source
+          df -h .
+      - name: Build and test complete DMG
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd source
+          node build-macos.mjs --development 2>&1 | tee ../macos-build.log
+      - name: Collect verified installer and corresponding source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir deliverables
+          cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg deliverables/
+          cp source/build-arm64-*/CUT-STUDIO-macOS-Source.zip deliverables/
+          cp source/build-arm64-*/build-result.json deliverables/
+          cp source/macos-editor-test-result.json deliverables/
+          cd deliverables
+          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Source.zip > SHA256SUMS.txt
+      - name: Upload verified macOS build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: CUT-STUDIO-macOS-arm64-0.0.0
+          path: deliverables/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: CUT-STUDIO-macOS-diagnostics
+          path: |
+            macos-build.log
+            source/macos-source-test-result.json
+            source/macos-editor-test-result.json
+          if-no-files-found: warn
+          retention-days: 7

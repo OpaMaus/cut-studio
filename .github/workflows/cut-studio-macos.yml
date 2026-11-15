@@ -5,11 +5,11 @@ on:
       source_asset:
         description: Verified source ZIP asset in release v0.0.0
         required: true
-        default: CUT-STUDIO-macOS-Buildkit-0.0.0-ci28.zip
+        default: CUT-STUDIO-macOS-Buildkit-0.0.0-ci29.zip
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: d46f92db8d050e9d21e6e971544d4d51e2dc3523db7df315245bdfaf0cf59261
+        default: 5f17d7cc5b9f3bb5f293c744b832ed500e65e3f8ef05c6eda8159503e2973e30
 permissions:
   contents: read
 concurrency:
@@ -23,8 +23,8 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
-      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.0-ci28.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || 'd46f92db8d050e9d21e6e971544d4d51e2dc3523db7df315245bdfaf0cf59261' }}
+      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.0-ci29.zip' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '5f17d7cc5b9f3bb5f293c744b832ed500e65e3f8ef05c6eda8159503e2973e30' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:

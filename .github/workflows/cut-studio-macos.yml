@@ -1,6 +1,15 @@
 name: CUT STUDIO macOS
 on:
   workflow_dispatch:
+    inputs:
+      source_asset:
+        description: Verified source ZIP asset in release v0.0.0
+        required: true
+        default: CUT-STUDIO-macOS-Buildkit-0.0.0-ci2.zip
+      source_sha256:
+        description: Expected SHA256 of the source ZIP
+        required: true
+        default: 9eca672f60a820080db4761aedba43bc7a494b1906488987fe3e2874072620dc
   push:
     paths:
       - '.github/workflows/cut-studio-macos.yml'
@@ -17,6 +26,8 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
+      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.0-ci2.zip' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '9eca672f60a820080db4761aedba43bc7a494b1906488987fe3e2874072620dc' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -33,8 +44,10 @@ jobs:
         run: |
           set -euo pipefail
           test "$(uname -m)" = arm64
-          curl --fail --location --retry 3 --output source.zip https://github.com/OpaMaus/cut-studio/releases/download/v0.0.0/CUT-STUDIO-macOS-Buildkit-0.0.0-ci1.zip
-          echo '7b2e3f13e0a041b84509130869ca90e6a57bfbeec312941a23900e40f5a99735  source.zip' | shasum -a 256 --check
+          [[ "$SOURCE_ASSET" =~ ^CUT-STUDIO-macOS-Buildkit-[A-Za-z0-9._-]+\.zip$ ]]
+          [[ "$SOURCE_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          curl --fail --location --retry 3 --output source.zip "https://github.com/OpaMaus/cut-studio/releases/download/v0.0.0/$SOURCE_ASSET"
+          printf '%s  source.zip\n' "$SOURCE_SHA256" | shasum -a 256 --check
           mkdir source
           unzip -q source.zip -d source
           df -h .

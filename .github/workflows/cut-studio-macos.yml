@@ -2,6 +2,11 @@ name: CUT STUDIO macOS
 on:
   workflow_dispatch:
     inputs:
+      runner:
+        description: Native Apple Silicon runner
+        type: choice
+        options: [macos-26, macos-15]
+        default: macos-26
       source_asset:
         description: Verified source ZIP asset in release v0.0.0
         required: true
@@ -13,11 +18,11 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: cut-studio-macos
+  group: cut-studio-macos-${{ inputs.runner || 'macos-26' }}
   cancel-in-progress: false
 jobs:
   apple-silicon:
-    runs-on: macos-26
+    runs-on: ${{ inputs.runner || 'macos-26' }}
     timeout-minutes: 90
     env:
       NEXT_TELEMETRY_DISABLED: '1'

@@ -6,30 +6,30 @@ on:
         description: Native Apple Silicon runner
         type: choice
         options: [macos-26, macos-15, xcode-27]
-        default: macos-26
+        default: xcode-27
       source_asset:
         description: Verified source ZIP asset in release v0.0.0
         required: true
-        default: CUT-STUDIO-macOS-Buildkit-0.0.0-ci49.zip
+        default: CUT-STUDIO-macOS-Buildkit-0.0.0-ci50.zip
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: b892519d7befcb8e192099742f40a824663f66db5ba5c4706f86ba327810620a
+        default: 10900acb4971c9b646b5aae46503bfaafa8b510ff9dc5a67796a007966226c5a
 permissions:
   contents: read
 concurrency:
-  group: cut-studio-macos-${{ inputs.runner || 'macos-26' }}
+  group: cut-studio-macos-${{ inputs.runner || 'xcode-27' }}
   cancel-in-progress: false
 jobs:
   apple-silicon:
-    runs-on: ${{ inputs.runner || 'macos-26' }}
+    runs-on: ${{ inputs.runner || 'xcode-27' }}
     timeout-minutes: 90
     env:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
-      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.0-ci49.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || 'b892519d7befcb8e192099742f40a824663f66db5ba5c4706f86ba327810620a' }}
+      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.0-ci50.zip' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '10900acb4971c9b646b5aae46503bfaafa8b510ff9dc5a67796a007966226c5a' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:

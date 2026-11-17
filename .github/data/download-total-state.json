@@ -62,11 +62,11 @@
       "platform": "macos"
     },
     "ffbf252a7cf069153e48704d6dbec843c99d4775b2901d6b6d363d4b9d3f2697": {
-      "count": 10,
+      "count": 16,
       "platform": "windows"
     },
     "bdf1b1c3fa5c285c49fc2e50e22c804a7116b01ad71367fda67901a66f4cc0bc": {
-      "count": 0,
+      "count": 6,
       "platform": "macos"
     }
   }

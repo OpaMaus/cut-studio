@@ -56,6 +56,14 @@
     "2b38d3ab6de1f0fc53d20de27506fa51bc1ea0bbc704a6a099e6703ab7953c8c": {
       "count": 19,
       "platform": "windows"
+    },
+    "f34e3072a17deaa72eb9320f90078110ee19099882eba0fe7e9c8da10aa2099d": {
+      "count": 0,
+      "platform": "macos"
+    },
+    "ffbf252a7cf069153e48704d6dbec843c99d4775b2901d6b6d363d4b9d3f2697": {
+      "count": 0,
+      "platform": "windows"
     }
   }
 }

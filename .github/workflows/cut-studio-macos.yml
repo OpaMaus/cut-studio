@@ -74,7 +74,10 @@ jobs:
                   assert relative not in seen, 'Duplicate source entry'
                   seen.add(relative);target.parent.mkdir(parents=True,exist_ok=True)
                   with z.open(e) as source,target.open('wb') as out:shutil.copyfileobj(source,out)
+                  mode=(e.external_attr>>16)&0o777
+                  if mode:target.chmod(mode)
           inventory=json.loads((dest/'FILES-SHA256.json').read_text())
+          assert seen=={entry['path'] for entry in inventory}|{'FILES-SHA256.json'}, 'Unlisted source files'
           for entry in inventory:
               file=dest/entry['path']
               assert file.resolve().is_relative_to(dest)

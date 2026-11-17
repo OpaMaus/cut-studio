@@ -32,6 +32,7 @@
  const timeout = setTimeout(() => controller.abort(), 10000);
  fetch('https://raw.githubusercontent.com/OpaMaus/cut-studio/main/docs/downloads.json?platforms=2', {cache:'no-store',signal:controller.signal})
   .then(response => {if(!response.ok)throw Error();return response.json();})
+  .then(data => {if(Number.isSafeInteger(data.windows)&&Number.isSafeInteger(data.macos))return data;return fetch('https://api.github.com/repos/OpaMaus/cut-studio/contents/docs/downloads.json?ref=main',{cache:'no-store',headers:{Accept:'application/vnd.github.raw+json'},signal:controller.signal}).then(response=>{if(!response.ok)throw Error();return response.json();});})
   .then(data => {for(const [platform,output] of outputs){if(!Number.isSafeInteger(data[platform])||data[platform]<0)throw Error();output.textContent=new Intl.NumberFormat(document.documentElement.lang).format(data[platform])+' Downloads insgesamt';output.title='Fortlaufende GitHub-Downloads für '+(platform==='windows'?'Windows':'macOS')+', einschließlich erneuter und Testdownloads.';output.hidden=false;}})
   .catch(() => {for(const [,output] of outputs)output.hidden=true;})
   .finally(() => clearTimeout(timeout));

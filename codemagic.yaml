@@ -1,0 +1,52 @@
+workflows:
+  macos-public-dmg-diagnostic:
+    name: Public DMG startup diagnostic
+    instance_type: mac_mini_m2
+    max_build_duration: 10
+    environment:
+      xcode: 27.1
+    scripts:
+      - name: Verify exact operating system and Apple Silicon
+        script: |
+          set -euo pipefail
+          mkdir -p diagnostics
+          sw_vers | tee diagnostics/system.txt
+          uname -m | tee -a diagnostics/system.txt
+          test "$(sw_vers -productVersion)" = "27.0.1"
+          test "$(uname -m)" = "arm64"
+      - name: Download and inspect public installer
+        script: |
+          set -euo pipefail
+          base=https://cut-studio-support.cut-studio-services.workers.dev/distribution/downloads
+          curl --fail --location --retry 2 "$base/cut-studio-build-macos-arm64.json" -o diagnostics/manifest.json
+          curl --fail --location --retry 2 "$base/CUT-STUDIO-macOS-arm64.dmg" -o installer.dmg
+          python3 - <<'PY'
+          import json, hashlib
+          from pathlib import Path
+          info=json.loads(Path('diagnostics/manifest.json').read_text())
+          assert hashlib.file_digest(Path('installer.dmg').open('rb'),'sha256').hexdigest()==info['sha256']
+          PY
+          hdiutil attach installer.dmg -readonly -nobrowse -mountpoint "$CM_BUILD_DIR/mounted"
+          ditto mounted/'CUT STUDIO.app' "$CM_BUILD_DIR/CUT STUDIO.app"
+          hdiutil detach "$CM_BUILD_DIR/mounted"
+          app="$CM_BUILD_DIR/CUT STUDIO.app"
+          codesign --verify --deep --strict --verbose=4 "$app" > diagnostics/signature-verification.txt 2>&1
+          codesign -dvvv --entitlements :- "$app" > diagnostics/main-signature.txt 2>&1
+          codesign -dvvv "$app/Contents/Frameworks/Electron Framework.framework/Versions/A/Electron Framework" > diagnostics/framework-signature.txt 2>&1
+          otool -L "$app/Contents/MacOS/CUT STUDIO" > diagnostics/libraries.txt
+      - name: Start public binary without modifying its signature
+        script: |
+          set -euo pipefail
+          app="$CM_BUILD_DIR/CUT STUDIO.app"
+          "$app/Contents/MacOS/CUT STUDIO" > diagnostics/launch.txt 2>&1 &
+          pid=$!
+          sleep 20
+          if ! kill -0 "$pid" 2>/dev/null; then
+            cat diagnostics/launch.txt
+            exit 1
+          fi
+          screencapture -x diagnostics/desktop.png || true
+          kill "$pid"
+          echo 'Process survived 20 seconds; inspect screenshot for actual window readiness.' > diagnostics/result.txt
+    artifacts:
+      - diagnostics/**

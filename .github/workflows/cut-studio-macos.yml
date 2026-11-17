@@ -10,11 +10,11 @@ on:
       source_asset:
         description: Verified source ZIP asset in release v0.0.0
         required: true
-        default: CUT-STUDIO-macOS-Buildkit-0.0.0-ci56.zip
+        default: CUT-STUDIO-macOS-Source.zip
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: 53cf900339b977532ec4dc6c1253db28ecbf08346089afae686202f5448009e6
+        default: 74e12ca0e4c0c3ce5400ed6ad0c9c384d444ef3e5099a31fef74b5e221422fda
 permissions:
   contents: read
 concurrency:
@@ -28,8 +28,8 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
-      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.0-ci56.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || '53cf900339b977532ec4dc6c1253db28ecbf08346089afae686202f5448009e6' }}
+      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Source.zip' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '74e12ca0e4c0c3ce5400ed6ad0c9c384d444ef3e5099a31fef74b5e221422fda' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -46,12 +46,43 @@ jobs:
         run: |
           set -euo pipefail
           test "$(uname -m)" = arm64
-          [[ "$SOURCE_ASSET" =~ ^CUT-STUDIO-macOS-Buildkit-[A-Za-z0-9._-]+\.zip$ ]]
+          [[ "$SOURCE_ASSET" =~ ^CUT-STUDIO-macOS-(Buildkit-[A-Za-z0-9._-]+|Source)\.zip$ ]]
           [[ "$SOURCE_SHA256" =~ ^[0-9a-f]{64}$ ]]
-          curl --fail --location --retry 3 --output source.zip "https://github.com/OpaMaus/cut-studio/releases/download/v0.0.0/$SOURCE_ASSET"
+          curl --fail --location --retry 3 --output source.zip "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.0.0/$SOURCE_ASSET"
           printf '%s  source.zip\n' "$SOURCE_SHA256" | shasum -a 256 --check
-          mkdir source
-          unzip -q source.zip -d source
+          python3 - <<'PY'
+          import hashlib,json,pathlib,shutil,stat,zipfile,sys
+          archive=pathlib.Path(sys.argv[1] if len(sys.argv)>1 else 'source.zip')
+          dest=pathlib.Path(sys.argv[2] if len(sys.argv)>2 else 'source').resolve()
+          assert not dest.exists(), 'Use a fresh source directory'
+          with zipfile.ZipFile(archive) as z:
+              assert z.testzip() is None, 'Source archive checksum failure'
+              manifests=[e.filename for e in z.infolist() if pathlib.PurePosixPath(e.filename).name=='FILES-SHA256.json']
+              assert len(manifests)==1, 'Exactly one source inventory required'
+              prefix=manifests[0][:-len('FILES-SHA256.json')]
+              seen=set()
+              for e in z.infolist():
+                  assert e.filename.startswith(prefix), 'Mixed archive roots'
+                  relative=e.filename[len(prefix):]
+                  if not relative:continue
+                  pure=pathlib.PurePosixPath(relative)
+                  assert not pure.is_absolute() and '..' not in pure.parts and '\\' not in relative and ':' not in relative, 'Unsafe source path'
+                  assert not stat.S_ISLNK(e.external_attr>>16), 'Source links not allowed'
+                  target=dest.joinpath(*pure.parts).resolve()
+                  assert target.is_relative_to(dest), 'Source path escapes destination'
+                  if e.is_dir():target.mkdir(parents=True,exist_ok=True);continue
+                  assert relative not in seen, 'Duplicate source entry'
+                  seen.add(relative);target.parent.mkdir(parents=True,exist_ok=True)
+                  with z.open(e) as source,target.open('wb') as out:shutil.copyfileobj(source,out)
+          inventory=json.loads((dest/'FILES-SHA256.json').read_text())
+          for entry in inventory:
+              file=dest/entry['path']
+              assert file.resolve().is_relative_to(dest)
+              data=file.read_bytes()
+              assert len(data)==entry['bytes'] and hashlib.sha256(data).hexdigest()==entry['sha256'], 'Source inventory mismatch'
+          assert (dest/'build-macos.mjs').is_file(), 'Mac build entrypoint missing'
+          print(json.dumps({'sourceReady':True,'verifiedFiles':len(inventory)}))
+          PY
           df -h .
       - name: Build and test complete DMG
         shell: bash

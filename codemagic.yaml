@@ -2,7 +2,7 @@ workflows:
   macos-public-dmg-diagnostic:
     name: Public DMG startup diagnostic
     instance_type: mac_mini_m2
-    max_build_duration: 10
+    max_build_duration: 15
     environment:
       xcode: 27.1
     scripts:
@@ -48,5 +48,10 @@ workflows:
           screencapture -x diagnostics/desktop.png || true
           kill "$pid"
           echo 'Process survived 20 seconds; inspect screenshot for actual window readiness.' > diagnostics/result.txt
+      - name: Test actual export and public update check
+        script: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          node mac-functional-test.cjs
     artifacts:
       - diagnostics/**

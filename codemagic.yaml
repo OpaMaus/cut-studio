@@ -17,9 +17,9 @@ workflows:
       - name: Download and inspect public installer
         script: |
           set -euo pipefail
-          base=https://cut-studio-support.cut-studio-services.workers.dev/distribution/downloads
-          curl --fail --location --retry 2 "$base/cut-studio-build-macos-arm64.json" -o diagnostics/manifest.json
-          curl --fail --location --retry 2 "$base/CUT-STUDIO-macOS-arm64.dmg" -o installer.dmg
+          base=https://github.com/OpaMaus/cut-studio/releases/download/v0.0.0
+          curl --fail --location --retry 2 --retry-all-errors "$base/cut-studio-build-macos-arm64.json" -o diagnostics/manifest.json
+          curl --fail --location --retry 2 --retry-all-errors "$base/CUT-STUDIO-macOS-arm64.dmg" -o installer.dmg
           python3 - <<'PY'
           import json, hashlib
           from pathlib import Path

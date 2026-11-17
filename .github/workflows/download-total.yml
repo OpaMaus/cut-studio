@@ -30,7 +30,7 @@ jobs:
           NODE
       - name: Verify counter behavior
         run: node "$RUNNER_TEMP/download-total.cjs" --self-test
-      - name: Save the aggregate download total
+      - name: Save the cumulative totals for each platform
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node "$RUNNER_TEMP/download-total.cjs"

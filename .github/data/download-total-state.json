@@ -1,9 +1,21 @@
 {
-  "schema": 1,
+  "schema": 2,
   "seen": {
-    "a1e1e4e4e353f842af3d0b33be083d5764146c308c4a560a43dc47975f82f43e": 3,
-    "d1ed105a2a7e9a8ac161292be50892aa35d2cbaac5c5ef83399e31144dbc0945": 7,
-    "6947cb77606287e81ec8d74c3e01b2de763434c98d6568d250c2e899a6c442b2": 0,
-    "7a4b38c268b18f6e729041f8262fdfb0b037d2748a4703dc078b4b9234a9ea0c": 0
+    "a1e1e4e4e353f842af3d0b33be083d5764146c308c4a560a43dc47975f82f43e": {
+      "count": 3,
+      "platform": "macos"
+    },
+    "d1ed105a2a7e9a8ac161292be50892aa35d2cbaac5c5ef83399e31144dbc0945": {
+      "count": 7,
+      "platform": "windows"
+    },
+    "6947cb77606287e81ec8d74c3e01b2de763434c98d6568d250c2e899a6c442b2": {
+      "count": 0,
+      "platform": "macos"
+    },
+    "7a4b38c268b18f6e729041f8262fdfb0b037d2748a4703dc078b4b9234a9ea0c": {
+      "count": 0,
+      "platform": "windows"
+    }
   }
 }

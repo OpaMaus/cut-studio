@@ -14,7 +14,7 @@ on:
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: eb3493da278a3272dca0b3a4c338087f619ba4ec3e618983ac34a9b2493be407
+        default: 2bab1ab8b34dbaedc738927953067dfcb9ce467b86678468f551cb3f834b123f
 permissions:
   contents: read
 concurrency:
@@ -28,8 +28,9 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
+      CUT_STUDIO_QA_SCOPE: 'text-editor'
       SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Source.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || 'eb3493da278a3272dca0b3a4c338087f619ba4ec3e618983ac34a9b2493be407' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '2bab1ab8b34dbaedc738927953067dfcb9ce467b86678468f551cb3f834b123f' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:

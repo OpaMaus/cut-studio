@@ -1,0 +1,139 @@
+name: CUT STUDIO verified candidate
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: Native Apple Silicon runner
+        type: choice
+        options: [macos-26, macos-15, xcode-27]
+        default: xcode-27
+      source_asset:
+        description: Verified source ZIP asset in release v0.0.0
+        required: true
+      source_asset_id:
+        description: Authenticated draft source asset ID
+        required: true
+      source_sha256:
+        description: Expected SHA256 of the source ZIP
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: cut-studio-macos-${{ inputs.runner || 'xcode-27' }}
+  cancel-in-progress: false
+jobs:
+  apple-silicon:
+    runs-on: ${{ inputs.runner || 'xcode-27' }}
+    timeout-minutes: 90
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NODE_OPTIONS: --max-old-space-size=4096
+      CUT_STUDIO_DESKTOP: '1'
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_ASSET_ID: ${{ inputs.source_asset_id }}
+      SOURCE_ASSET: ${{ inputs.source_asset }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 }}
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.3.3'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          version: '0.11.5'
+          enable-cache: false
+      - name: Verify Mac and download matching source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          [[ "$SOURCE_ASSET" =~ ^CUT-STUDIO-macOS-(Buildkit-[A-Za-z0-9._-]+|Source)\.zip$ ]]
+          [[ "$SOURCE_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$SOURCE_ASSET_ID" =~ ^[0-9]+$ ]]
+          node - <<'JS'
+          const fs=require('fs');
+          (async()=>{const route='https://api.github.com/repos/'+process.env.GITHUB_REPOSITORY+'/releases/assets/'+process.env.SOURCE_ASSET_ID;
+          let r=await fetch(route,{redirect:'manual',headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/octet-stream','User-Agent':'CUT-STUDIO-build'}});
+          if([301,302,303,307,308].includes(r.status)){const url=new URL(r.headers.get('location'));if(url.protocol!=='https:')throw Error('Unsafe source redirect');r=await fetch(url);}
+          if(!r.ok||!r.body||r.headers.get('content-type')?.includes('json'))throw Error('Draft source unavailable: HTTP '+r.status);
+          const out=fs.createWriteStream('source.zip');await require('stream/promises').pipeline(r.body,out);})().catch(e=>{console.error(e.message);process.exitCode=1;});
+          JS
+          printf '%s  source.zip\n' "$SOURCE_SHA256" | shasum -a 256 --check
+          python3 - <<'PY'
+          import hashlib,json,pathlib,shutil,stat,zipfile,sys
+          archive=pathlib.Path(sys.argv[1] if len(sys.argv)>1 else 'source.zip')
+          dest=pathlib.Path(sys.argv[2] if len(sys.argv)>2 else 'source').resolve()
+          assert not dest.exists(), 'Use a fresh source directory'
+          with zipfile.ZipFile(archive) as z:
+              assert z.testzip() is None, 'Source archive checksum failure'
+              manifests=[e.filename for e in z.infolist() if pathlib.PurePosixPath(e.filename).name=='FILES-SHA256.json']
+              assert len(manifests)==1, 'Exactly one source inventory required'
+              prefix=manifests[0][:-len('FILES-SHA256.json')]
+              seen=set()
+              for e in z.infolist():
+                  assert e.filename.startswith(prefix), 'Mixed archive roots'
+                  relative=e.filename[len(prefix):]
+                  if not relative:continue
+                  pure=pathlib.PurePosixPath(relative)
+                  assert not pure.is_absolute() and '..' not in pure.parts and '\\' not in relative and ':' not in relative, 'Unsafe source path'
+                  assert not stat.S_ISLNK(e.external_attr>>16), 'Source links not allowed'
+                  target=dest.joinpath(*pure.parts).resolve()
+                  assert target.is_relative_to(dest), 'Source path escapes destination'
+                  if e.is_dir():target.mkdir(parents=True,exist_ok=True);continue
+                  assert relative not in seen, 'Duplicate source entry'
+                  seen.add(relative);target.parent.mkdir(parents=True,exist_ok=True)
+                  with z.open(e) as source,target.open('wb') as out:shutil.copyfileobj(source,out)
+                  mode=(e.external_attr>>16)&0o777
+                  if mode:target.chmod(mode)
+          inventory=json.loads((dest/'FILES-SHA256.json').read_text())
+          assert seen=={entry['path'] for entry in inventory}|{'FILES-SHA256.json'}, 'Unlisted source files'
+          for entry in inventory:
+              file=dest/entry['path']
+              assert file.resolve().is_relative_to(dest)
+              data=file.read_bytes()
+              assert len(data)==entry['bytes'] and hashlib.sha256(data).hexdigest()==entry['sha256'], 'Source inventory mismatch'
+          assert (dest/'build-macos.mjs').is_file(), 'Mac build entrypoint missing'
+          print(json.dumps({'sourceReady':True,'verifiedFiles':len(inventory)}))
+          PY
+          df -h .
+      - name: Build and test complete DMG
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd source
+          node build-macos.mjs --development 2>&1 | tee ../macos-build.log
+      - name: Collect verified installer and corresponding source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir deliverables
+          cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg deliverables/
+          cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg.delta.json deliverables/
+          cp source/macos-delta-test-result.json deliverables/
+          cp source/build-arm64-*/CUT-STUDIO-macOS-Source.zip deliverables/
+          cp source/build-arm64-*/build-result.json deliverables/
+          cp source/macos-editor-test-result.json deliverables/
+          node -e "require('fs').writeFileSync('deliverables/input-source.json',JSON.stringify({sourceSha256:process.env.SOURCE_SHA256,sourceAssetId:process.env.SOURCE_ASSET_ID}))"
+          cd deliverables
+          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Source.zip > SHA256SUMS.txt
+      - name: Upload verified macOS build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: CUT-STUDIO-macOS-arm64-0.0.0
+          path: deliverables/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: CUT-STUDIO-macOS-diagnostics
+          path: |
+            macos-build.log
+            source/macos-source-test-result.json
+            source/macos-editor-test-result.json
+          if-no-files-found: warn
+          retention-days: 7

@@ -7,6 +7,11 @@ on:
         type: choice
         options: [macos-26, macos-15, xcode-27]
         default: xcode-27
+      qa_scope:
+        description: Focused native editor acceptance
+        type: choice
+        options: [full, text-editor]
+        default: full
       source_asset:
         description: Verified source ZIP asset in release v0.0.0
         required: true
@@ -32,6 +37,7 @@ jobs:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
+      CUT_STUDIO_QA_SCOPE: ${{ inputs.qa_scope || 'full' }}
       SOURCE_ASSET_ID: ${{ inputs.source_asset_id }}
       SOURCE_ASSET: ${{ inputs.source_asset }}
       SOURCE_SHA256: ${{ inputs.source_sha256 }}

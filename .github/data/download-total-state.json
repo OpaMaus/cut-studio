@@ -100,6 +100,14 @@
     "23f8180bbfaff44ebcc02cef38d0a344662023edc22d2e699f5546de6f4a931f": {
       "count": 6,
       "platform": "windows"
+    },
+    "1b1643e130521ad30af080be4e134f1e8db0fa9c9ba9d03b457ad93ffd7adac2": {
+      "count": 5,
+      "platform": "macos"
+    },
+    "25bac22cf34dba026f76bdd435f51bb93872bcba5fe560777f145b51f87e5d85": {
+      "count": 5,
+      "platform": "windows"
     }
   }
 }

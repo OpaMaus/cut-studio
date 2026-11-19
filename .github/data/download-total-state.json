@@ -108,6 +108,14 @@
     "25bac22cf34dba026f76bdd435f51bb93872bcba5fe560777f145b51f87e5d85": {
       "count": 5,
       "platform": "windows"
+    },
+    "23e1e40c4b2cba33937adcf4e57a0f1ca94715b1f2e3dc0b56397ba018be272e": {
+      "count": 5,
+      "platform": "macos"
+    },
+    "b2f40b12cf863f2a043aec0cbb44eab0a8992984b2e8f6fac6c1c1a5667c4a5c": {
+      "count": 4,
+      "platform": "windows"
     }
   }
 }

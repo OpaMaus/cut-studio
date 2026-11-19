@@ -14,7 +14,7 @@ on:
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: 9f64a3b809754cfd9213f859f53a68fe19c946bc667fb8814e729ba45731b829
+        default: 13ad5d1dfe7f511796281e91581a7c40a108edc5a679ce0f7429977fc4e955f6
 permissions:
   contents: read
 concurrency:
@@ -30,7 +30,7 @@ jobs:
       CUT_STUDIO_DESKTOP: '1'
       CUT_STUDIO_QA_SCOPE: 'project-import'
       SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Source.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || '9f64a3b809754cfd9213f859f53a68fe19c946bc667fb8814e729ba45731b829' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '13ad5d1dfe7f511796281e91581a7c40a108edc5a679ce0f7429977fc4e955f6' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:

@@ -113,6 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           cd source
+          ulimit -n 65536 2>/dev/null || ulimit -n 10240 2>/dev/null || true
           node build-macos.mjs --development 2>&1 | tee ../macos-build.log
       - name: Collect verified installer and corresponding source
         shell: bash

@@ -152,6 +152,14 @@
     "1704006460a61c70064cf2d5325f06d16874a521d1ecd4f8fba7d75528d1f152": {
       "count": 48,
       "platform": "windows"
+    },
+    "22aef723309732422bebeede7745dbc71cddf59e00f1bce1ca152aeddc1d6812": {
+      "count": 6,
+      "platform": "macos"
+    },
+    "9955acb77909d099cd7f5bcd60a97c6af57c39a095859e11bc137f7682717f0e": {
+      "count": 5,
+      "platform": "windows"
     }
   }
 }

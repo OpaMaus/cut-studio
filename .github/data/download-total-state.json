@@ -168,6 +168,14 @@
     "808f674a6c4f74c322c7c864f70e148f43ed2a0b86b6b795e252445c898c132a": {
       "count": 4,
       "platform": "windows"
+    },
+    "52c8ec71ce6c3006722574f984f5ac32d598fdd73e3e56c7fa46e0c9699e09f8": {
+      "count": 3,
+      "platform": "macos"
+    },
+    "c7aab84d747032d0cb1708ebcabbdf0a5151ba2a35ff351520cf69d46e8c9153": {
+      "count": 3,
+      "platform": "windows"
     }
   }
 }

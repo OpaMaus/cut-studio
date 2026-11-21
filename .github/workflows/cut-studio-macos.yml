@@ -14,7 +14,7 @@ on:
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: 5468ea2669c47510adb5569266cfc0eed6cf54792468371709cbcd5d7c589adb
+        default: fe10ebb1982ea54c5b4c8241a7347d8069429b77d5a3f1df4dc1e767e1fd7015
 permissions:
   contents: read
 concurrency:
@@ -30,7 +30,7 @@ jobs:
       CUT_STUDIO_DESKTOP: '1'
       CUT_STUDIO_QA_SCOPE: 'timeline-interactions'
       SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Source.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || '5468ea2669c47510adb5569266cfc0eed6cf54792468371709cbcd5d7c589adb' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || 'fe10ebb1982ea54c5b4c8241a7347d8069429b77d5a3f1df4dc1e767e1fd7015' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:

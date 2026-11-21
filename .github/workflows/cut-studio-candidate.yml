@@ -10,7 +10,7 @@ on:
       qa_scope:
         description: Focused native editor acceptance
         type: choice
-        options: [full, text-editor, project-cover, project-import]
+        options: [full, text-editor, project-cover, project-import, timeline-interactions]
         default: full
       source_asset:
         description: Verified source ZIP asset in release v0.0.0

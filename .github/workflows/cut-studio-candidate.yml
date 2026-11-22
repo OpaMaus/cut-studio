@@ -146,5 +146,6 @@ jobs:
             macos-build.log
             source/macos-source-test-result.json
             source/macos-editor-test-result.json
+            source/qa-diagnostics
           if-no-files-found: warn
           retention-days: 7

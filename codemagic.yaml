@@ -1,0 +1,62 @@
+workflows:
+  cut-studio-native-macos-007:
+    name: CutStudio 0.0.7 native Mac acceptance
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+    environment:
+      node: 24
+      xcode: latest
+      vars:
+        NEXT_TELEMETRY_DISABLED: '1'
+        NODE_OPTIONS: --max-old-space-size=4096
+        CUT_STUDIO_DESKTOP: '1'
+        CUT_STUDIO_QA_SCOPE: timeline-interactions
+        CM_CLONE_DEPTH: '1'
+    scripts:
+      - name: Verify Apple Silicon and pinned build tools
+        script: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          sw_vers
+          mkdir -p .ci-tools
+          curl --fail --location --retry 2 --retry-all-errors https://github.com/oven-sh/bun/releases/download/bun-v1.4.5/bun-darwin-aarch64.zip -o .ci-tools/bun.zip
+          printf '%s  %s\n' b5d6bc2e13caf14e57c89661e89efd073ff16165b41bfe43882616410609cd10 .ci-tools/bun.zip | shasum -a 256 --check
+          unzip -q .ci-tools/bun.zip -d .ci-tools
+          curl --fail --location --retry 2 --retry-all-errors https://github.com/astral-sh/uv/releases/download/0.11.5/uv-aarch64-apple-darwin.tar.gz -o .ci-tools/uv.tar.gz
+          printf '%s  %s\n' 470993e87503874c7c48861daa308b48a7c367e117235bbecf19368b9fdd35b2 .ci-tools/uv.tar.gz | shasum -a 256 --check
+          tar -xzf .ci-tools/uv.tar.gz -C .ci-tools
+          export PATH="$CM_BUILD_DIR/.ci-tools/bun-darwin-aarch64:$CM_BUILD_DIR/.ci-tools/uv-aarch64-apple-darwin:$PATH"
+          printf 'PATH=%s\n' "$PATH" >> "$CM_ENV"
+          test "$(bun --version)" = 1.4.5
+          uv --version
+          node --version
+      - name: Download and verify exact Mac source
+        script: |
+          set -euo pipefail
+          node .ci/fetch-native-source.cjs
+          python3 .ci/normalize-native-source.py .ci-input/source.zip native-source
+      - name: Build and test packaged app and DMG installation
+        script: |
+          set -euo pipefail
+          cd native-source
+          ulimit -n 65536 2>/dev/null || ulimit -n 10240 2>/dev/null || true
+          node build-macos.mjs --development 2>&1 | tee ../macos-build.log
+      - name: Collect exact native installer and acceptance evidence
+        script: |
+          set -euo pipefail
+          mkdir deliverables
+          cp native-source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg deliverables/
+          cp native-source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg.delta.json deliverables/
+          cp native-source/build-arm64-*/CUT-STUDIO-macOS-Source.zip deliverables/
+          cp native-source/build-arm64-*/build-result.json deliverables/
+          cp native-source/macos-editor-test-result.json deliverables/
+          cp native-source/macos-delta-test-result.json deliverables/
+          cp .ci-input/input-source.json deliverables/
+          cp macos-build.log deliverables/
+          cd deliverables
+          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Source.zip > SHA256SUMS.txt
+          zip -q -0 ../CUT-STUDIO-macOS-native-0.0.7.zip *
+    artifacts:
+      - CUT-STUDIO-macOS-native-0.0.7.zip
+      - macos-build.log
+      - native-source/qa-diagnostics/**

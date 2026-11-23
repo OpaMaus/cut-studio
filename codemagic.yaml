@@ -40,6 +40,24 @@ workflows:
           set -euo pipefail
           cd native-source
           ulimit -n 65536 2>/dev/null || ulimit -n 10240 2>/dev/null || true
+          preserve_failed_candidate() {
+            candidate_status=$?
+            if [ "$candidate_status" -ne 0 ]; then
+              for candidate_stage in "$CM_BUILD_DIR"/native-source/build-arm64-*; do
+                test -f "$candidate_stage/dist/CUT-STUDIO-macOS-arm64.dmg" || continue
+                candidate_snapshot="$CM_BUILD_DIR/native-source/qa-diagnostics/native-candidate"
+                mkdir -p "$candidate_snapshot"
+                cp "$candidate_stage/dist/CUT-STUDIO-macOS-arm64.dmg" "$candidate_snapshot/" || true
+                cp "$candidate_stage/dist/CUT-STUDIO-macOS-arm64.dmg.delta.json" "$candidate_snapshot/" || true
+                cp "$candidate_stage/CUT-STUDIO-macOS-Source.zip" "$candidate_snapshot/" || true
+                cp "$candidate_stage/build-info.json" "$candidate_snapshot/" || true
+                cp "$CM_BUILD_DIR/.ci-input/input-source.json" "$candidate_snapshot/" || true
+                printf '{"accepted":false,"requiresNativeQA":true}\n' > "$candidate_snapshot/candidate-status.json"
+              done
+            fi
+            exit "$candidate_status"
+          }
+          trap preserve_failed_candidate EXIT
           node build-macos.mjs --development 2>&1 | tee ../macos-build.log
       - name: Collect exact native installer and acceptance evidence
         script: |

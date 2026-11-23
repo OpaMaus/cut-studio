@@ -4,7 +4,7 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 90
     environment:
-      node: 24
+      node: '24'
       xcode: latest
       vars:
         NEXT_TELEMETRY_DISABLED: '1'

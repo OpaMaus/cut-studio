@@ -132,7 +132,7 @@ jobs:
       - name: Upload verified macOS build
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: CUT-STUDIO-macOS-arm64-0.0.4
+          name: CUT-STUDIO-macOS-arm64-0.0.5
           path: deliverables/
           if-no-files-found: error
           retention-days: 14

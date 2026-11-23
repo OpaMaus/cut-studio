@@ -8,13 +8,13 @@ on:
         options: [macos-26, macos-15, xcode-27]
         default: xcode-27
       source_asset:
-        description: Verified source ZIP asset in release v0.0.6
+        description: Verified source ZIP asset in release v0.0.7
         required: true
         default: CUT-STUDIO-macOS-Source.zip
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: d0e85696b179d4c18bea54e73bed84fb1b74233665f32b8a0ba4fc6663f073cb
+        default: 522776a5348719ed46c03a8edbbc7c6176dd881d454bcc40f05febc97f309d6f
 permissions:
   contents: read
 concurrency:
@@ -30,7 +30,7 @@ jobs:
       CUT_STUDIO_DESKTOP: '1'
       CUT_STUDIO_QA_SCOPE: 'timeline-interactions'
       SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Source.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || 'd0e85696b179d4c18bea54e73bed84fb1b74233665f32b8a0ba4fc6663f073cb' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '522776a5348719ed46c03a8edbbc7c6176dd881d454bcc40f05febc97f309d6f' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -49,7 +49,7 @@ jobs:
           test "$(uname -m)" = arm64
           [[ "$SOURCE_ASSET" =~ ^CUT-STUDIO-macOS-(Buildkit-[A-Za-z0-9._-]+|Source)\.zip$ ]]
           [[ "$SOURCE_SHA256" =~ ^[0-9a-f]{64}$ ]]
-          curl --fail --location --retry 3 --output source.zip "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.0.6/$SOURCE_ASSET"
+          curl --fail --location --retry 3 --output source.zip "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.0.7/$SOURCE_ASSET"
           printf '%s  source.zip\n' "$SOURCE_SHA256" | shasum -a 256 --check
           python3 - <<'PY'
           import hashlib,json,pathlib,shutil,stat,zipfile,sys
@@ -110,7 +110,7 @@ jobs:
       - name: Upload verified macOS build
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: CUT-STUDIO-macOS-arm64-0.0.6
+          name: CUT-STUDIO-macOS-arm64-0.0.7
           path: deliverables/
           if-no-files-found: error
           retention-days: 14

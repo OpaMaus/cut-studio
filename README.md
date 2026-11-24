@@ -2,7 +2,7 @@
 
 **[Windows & macOS herunterladen](https://opamaus.github.io/cut-studio/)**
 
-CUT STUDIO 0.0.7 – Videoeditor für Windows und macOS. Downloads und Updates.
+CUT STUDIO 0.0.8 – Videoeditor für Windows und macOS. Downloads und Updates.
 
 <!-- cut-studio-community:start -->
 ### Community & feedback · Community & Feedback

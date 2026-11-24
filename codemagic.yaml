@@ -11,7 +11,7 @@ workflows:
         NODE_OPTIONS: --max-old-space-size=4096
         CUT_STUDIO_DESKTOP: '1'
         CUT_STUDIO_QA_SCOPE: marker-correction
-        CM_CLONE_DEPTH: '1'
+        CM_CLONE_DEPTH: '10'
     scripts:
       - name: Verify Apple Silicon and pinned build tools
         script: |

@@ -6,31 +6,31 @@ on:
         description: Native Apple Silicon runner
         type: choice
         options: [macos-26, macos-15, xcode-27]
-        default: xcode-27
+        default: macos-26
       source_asset:
-        description: Verified source ZIP asset in release v0.0.10
+        description: Verified source ZIP asset in release v0.0.11
         required: true
-        default: CUT-STUDIO-macOS-Source.zip
+        default: CUT-STUDIO-macOS-Buildkit-0.0.11-shapes.zip
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: 17f783ca8fde00a44058916ec21ac1d4ddd053925409432d2221bfc2b0edd087
+        default: 8c3b771bd9595e062b5d8cac550dc2806132cdfdc396ab2bb8f069ded8f1cbbc
 permissions:
   contents: read
 concurrency:
-  group: cut-studio-macos-${{ inputs.runner || 'xcode-27' }}
+  group: cut-studio-macos-${{ inputs.runner || 'macos-26' }}
   cancel-in-progress: false
 jobs:
   apple-silicon:
-    runs-on: ${{ inputs.runner || 'xcode-27' }}
+    runs-on: ${{ inputs.runner || 'macos-26' }}
     timeout-minutes: 90
     env:
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
-      CUT_STUDIO_QA_SCOPE: 'timeline-interactions'
-      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Source.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || '17f783ca8fde00a44058916ec21ac1d4ddd053925409432d2221bfc2b0edd087' }}
+      CUT_STUDIO_QA_SCOPE: 'shape-correction'
+      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.11-shapes.zip' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '8c3b771bd9595e062b5d8cac550dc2806132cdfdc396ab2bb8f069ded8f1cbbc' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -49,7 +49,7 @@ jobs:
           test "$(uname -m)" = arm64
           [[ "$SOURCE_ASSET" =~ ^CUT-STUDIO-macOS-(Buildkit-[A-Za-z0-9._-]+|Source)\.zip$ ]]
           [[ "$SOURCE_SHA256" =~ ^[0-9a-f]{64}$ ]]
-          curl --fail --location --retry 3 --output source.zip "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.0.10/$SOURCE_ASSET"
+          curl --fail --location --retry 3 --output source.zip "https://github.com/$GITHUB_REPOSITORY/releases/download/v0.0.11/$SOURCE_ASSET"
           printf '%s  source.zip\n' "$SOURCE_SHA256" | shasum -a 256 --check
           python3 - <<'PY'
           import hashlib,json,pathlib,shutil,stat,zipfile,sys
@@ -93,6 +93,7 @@ jobs:
         run: |
           set -euo pipefail
           cd source
+          ulimit -n 65536 2>/dev/null || ulimit -n 10240 2>/dev/null || true
           node build-macos.mjs --development 2>&1 | tee ../macos-build.log
       - name: Collect verified installer and corresponding source
         shell: bash
@@ -102,15 +103,15 @@ jobs:
           cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg deliverables/
           cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg.delta.json deliverables/
           cp source/macos-delta-test-result.json deliverables/
-          cp source/build-arm64-*/CUT-STUDIO-macOS-Source.zip deliverables/
+          cp source/build-arm64-*/CUT-STUDIO-macOS-Buildkit-0.0.11-shapes.zip deliverables/
           cp source/build-arm64-*/build-result.json deliverables/
           cp source/macos-editor-test-result.json deliverables/
           cd deliverables
-          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Source.zip > SHA256SUMS.txt
+          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Buildkit-0.0.11-shapes.zip > SHA256SUMS.txt
       - name: Upload verified macOS build
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: CUT-STUDIO-macOS-arm64-0.0.10
+          name: CUT-STUDIO-macOS-arm64-0.0.11
           path: deliverables/
           if-no-files-found: error
           retention-days: 14

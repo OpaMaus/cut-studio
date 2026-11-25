@@ -10,11 +10,11 @@ on:
       source_asset:
         description: Verified source ZIP asset in release v0.0.12
         required: true
-        default: CUT-STUDIO-macOS-Buildkit-0.0.12-editing7.zip
+        default: CUT-STUDIO-macOS-Buildkit-0.0.12-editing9.zip
       source_sha256:
         description: Expected SHA256 of the source ZIP
         required: true
-        default: 78c6ece2fd2f6032249ad38f6c28628be153039e676bc7d324966160629e29e4
+        default: 69a20ae0359deef3db2ff2d7dac52ac3e33de31501940cf9a3cacbd5b28747f9
 permissions:
   contents: write
 concurrency:
@@ -25,13 +25,13 @@ jobs:
     runs-on: ${{ inputs.runner || 'macos-26' }}
     timeout-minutes: 90
     env:
-      SOURCE_ASSET_ID: '793404158'
+      SOURCE_ASSET_ID: '793527595'
       NEXT_TELEMETRY_DISABLED: '1'
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
       CUT_STUDIO_QA_SCOPE: 'local-editing'
-      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.12-editing7.zip' }}
-      SOURCE_SHA256: ${{ inputs.source_sha256 || '78c6ece2fd2f6032249ad38f6c28628be153039e676bc7d324966160629e29e4' }}
+      SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.12-editing9.zip' }}
+      SOURCE_SHA256: ${{ inputs.source_sha256 || '69a20ae0359deef3db2ff2d7dac52ac3e33de31501940cf9a3cacbd5b28747f9' }}
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -109,11 +109,11 @@ jobs:
           cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg deliverables/
           cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg.delta.json deliverables/
           cp source/macos-delta-test-result.json deliverables/
-          cp source/build-arm64-*/CUT-STUDIO-macOS-Buildkit-0.0.12-editing7.zip deliverables/
+          cp source/build-arm64-*/CUT-STUDIO-macOS-Buildkit-0.0.12-editing9.zip deliverables/
           cp source/build-arm64-*/build-result.json deliverables/
           cp source/macos-editor-test-result.json deliverables/
           cd deliverables
-          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Buildkit-0.0.12-editing7.zip > SHA256SUMS.txt
+          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Buildkit-0.0.12-editing9.zip > SHA256SUMS.txt
       - name: Upload verified macOS build
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

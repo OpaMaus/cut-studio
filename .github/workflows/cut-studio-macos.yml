@@ -108,8 +108,9 @@ jobs:
           cp source/build-arm64-*/build-result.json deliverables/
           cp source/macos-editor-test-result.json deliverables/
           cd deliverables
-          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Buildkit-0.0.11-shapes.zip > SHA256SUMS.txt
+          shasum -a 256 CUT-STUDIO-macOS-arm64.dmg CUT-STUDIO-macOS-Source.zip > SHA256SUMS.txt
       - name: Upload verified macOS build
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: CUT-STUDIO-macOS-arm64-0.0.11

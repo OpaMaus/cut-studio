@@ -16,7 +16,7 @@ on:
         required: true
         default: 83fd1df56d185c736ffb406994b6fc71d185d463252a9042e3eb0b0aeb8366ba
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: cut-studio-macos-${{ inputs.runner || 'macos-26' }}
   cancel-in-progress: false

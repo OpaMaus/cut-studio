@@ -29,6 +29,7 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=4096
       CUT_STUDIO_DESKTOP: '1'
       CUT_STUDIO_QA_SCOPE: 'shape-correction'
+      CUT_STUDIO_QA_PHASE: 'bundle'
       SOURCE_ASSET: ${{ inputs.source_asset || 'CUT-STUDIO-macOS-Buildkit-0.0.11-shapes.zip' }}
       SOURCE_SHA256: ${{ inputs.source_sha256 || '8c3b771bd9595e062b5d8cac550dc2806132cdfdc396ab2bb8f069ded8f1cbbc' }}
     steps:
@@ -103,7 +104,7 @@ jobs:
           cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg deliverables/
           cp source/build-arm64-*/dist/CUT-STUDIO-macOS-arm64.dmg.delta.json deliverables/
           cp source/macos-delta-test-result.json deliverables/
-          cp source/build-arm64-*/CUT-STUDIO-macOS-Buildkit-0.0.11-shapes.zip deliverables/
+          cp source/build-arm64-*/CUT-STUDIO-macOS-Source.zip deliverables/
           cp source/build-arm64-*/build-result.json deliverables/
           cp source/macos-editor-test-result.json deliverables/
           cd deliverables
